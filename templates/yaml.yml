@@ -1,0 +1,34 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/python:1.0.0"
+      description: "The docker image to use for the job"
+    yamllint_url:
+      default: "https://gitlab.com/api/v4/projects/70917288/repository/files/_configs%2F.yamllint.yml/raw?ref=main"
+      description: "The URL to the yamllint configuration file"
+---
+variables:
+  CONTAINER_IMAGE_PYTHON: $[[ inputs.docker_image ]]
+  YAMLLINT_URL: $[[ inputs.yamllint_url ]]
+
+include:
+  - local: /source/logo.yml
+  - local: /source/input_variables_yaml.yml
+
+.yamlint:validate:base:
+  image: $CONTAINER_IMAGE_PYTHON
+  before_script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
+    - !reference [.logo]
+    - !reference [.input-variables-yaml]
+  script:
+    - |
+      if [ ! -f "$CI_PROJECT_DIR/.yamllint" ]; then
+        curl -s -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" ${YAMLLINT_URL} --output $CI_PROJECT_DIR/.yamllint;
+      fi
+    - yamllint .
+
+🕵 YAML lint:
+  stage: validate
+  extends: ['.yamlint:validate:base']
