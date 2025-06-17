@@ -1,0 +1,50 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/terraform:1.0.0"
+      description: "The docker image to use for the job"
+    tf_state_name:
+      default: default
+      description: "The name of the terraform state file"
+    debug:
+      default: "false"
+---
+variables:
+  CONTAINER_IMAGE_TERRAFORM: $[[ inputs.docker_image ]]
+  TF_STATE_NAME: $[[ inputs.tf_state_name ]]
+  TF_VAR_gitlab_token: $GITLAB_TOKEN
+  DEBUG: $[[ inputs.debug ]]
+
+
+include:
+  - local: /source/input_variables_terraform.yml
+  - local: /source/logo.yml
+  - local: /source/terraform_init.yml
+
+
+.terraform:validate:base:
+  image: $CONTAINER_IMAGE_TERRAFORM
+  before_script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
+    - !reference [.logo]
+    - !reference [.input-variables-terraform]
+    - !reference [.terraform_init]
+
+
+🕵 terraform fmt:
+  stage: validate
+  extends: ['.terraform:validate:base']
+  script:
+    - terraform fmt -recursive -check
+  rules:
+    - when: never
+
+
+✅ terraform validate:
+  stage: validate
+  extends: ['.terraform:validate:base']
+  script:
+    - terraform validate
+  rules:
+    - when: never
