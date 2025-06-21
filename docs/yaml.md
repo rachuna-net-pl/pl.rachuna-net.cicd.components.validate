@@ -47,7 +47,13 @@ yamllint .
 
 ```yaml
 include:
-  component: registry.gitlab.com/your-group/gitlab-components/yaml-lint
-  inputs:
-    yamllint_url: "https://gitlab.com/api/v4/projects/12345678/repository/files/.yamllint/raw?ref=main"
+  - local: _rules/validate.yml
+  - component: $CI_SERVER_FQDN/pl.rachuna-net/cicd/components/validate/yaml@$COMPONENT_VERSION_VALIDATE
+    inputs:
+      docker_image: $CONTAINER_IMAGE_PYTHON
+
+
+🕵 YAML lint:
+  stage: validate
+  rules: !reference [.rule:validate:yamllint, rules]
 ```
