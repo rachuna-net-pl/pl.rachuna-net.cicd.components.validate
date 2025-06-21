@@ -56,8 +56,14 @@ terraform validate
 
 ```yaml
 include:
-  component: registry.gitlab.com/your-group/gitlab-components/terraform-validate
-  inputs:
-    tf_state_name: "production"
-    debug: "true"
+  - component: $CI_SERVER_FQDN/pl.rachuna-net/cicd/components/validate/terraform@$COMPONENT_VERSION_VALIDATE
+    inputs:
+      docker_image: $CONTAINER_IMAGE_TERRAFORM
+
+✅ terraform validate:
+  rules: !reference [.rule:validate:terraform, rules]
+
+
+🕵 terraform fmt:
+  rules: !reference [.rule:validate:terraform, rules]
 ```
