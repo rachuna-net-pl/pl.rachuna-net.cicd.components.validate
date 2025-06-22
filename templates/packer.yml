@@ -1,0 +1,49 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: registry.gitlab.com/pl.rachuna-net/containers/packer:1.0.0
+      description: The docker image to use for the job
+---
+variables:
+  CONTAINER_IMAGE_PACKER: $[[ inputs.docker_image ]]
+  PACKER_LOG: 0
+
+
+include:
+  - local: /source/logo.yml
+  - local: /source/input_variables_packer.yml
+
+
+.packer:validate:base:
+  image: $CONTAINER_IMAGE_PACKER
+  stage: validate
+  before_script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
+    - !reference [.logo]
+    - !reference [.input-variables-packer]
+    - packer init .
+
+
+✅ packer fmt (syntax check):
+  extends: ['.packer:validate:base']
+  script:
+    - |
+      for file in $(find pkrvars -type f -name "*.hcl"); do
+        echo "🧪 Check syntax for $file"
+        packer fmt -check -var-file=$file .
+      done
+  rules:
+    - when: never
+
+
+✅ packer validate:
+  extends: ['.packer:validate:base']
+  script:
+    - |
+        for file in $(find pkrvars -type f -name "*.hcl"); do
+          echo "🧪 Check validate for $file"
+          packer validate -var-file=$file .
+        done
+  rules:
+    - when: never
