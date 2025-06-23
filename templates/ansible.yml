@@ -1,0 +1,49 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/ansible:1.0.0"
+      description: "The docker image to use for the job"
+    ansible_inventory:
+      default: "inventory/hosts.yml"
+      description: "The ansible inventory file to use"
+    ansible_vars:
+      default: ""
+      description: "The ansible variables to play the playbook"
+---
+variables:
+  CONTAINER_IMAGE_ANSIBLE: $[[ inputs.docker_image ]]
+  ANSIBLE_HOST_KEY_CHECKING: false
+  ANSIBLE_FORCE_COLOR: true
+  ANSIBLE_INVENTORY: $[[ inputs.ansible_inventory ]]
+  ANSIBLE_VARS: $[[ inputs.ansible_vars ]]
+
+
+include:
+  - local: /source/input_variables_ansible.yml
+  - local: /source/logo.yml
+  - local: /source/ansible_init.yml
+
+
+.ansible:validate:base:
+  image: $CONTAINER_IMAGE_ANSIBLE
+  before_script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
+    - !reference [.logo]
+    - !reference [.input-variables-ansible]
+    - !reference [.ansible_init]
+
+
+✅ ansible-playbook check:
+  stage: validate
+  extends: ['.ansible:validate:base']
+  script:
+    - |
+      for file in playbooks/*.yml; do
+        echo -e "┌────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐"
+        printf "| %-10s | %-130s |\n" "Playbook" "$file"
+        echo -e "└────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+        ansible-playbook -i $ANSIBLE_INVENTORY $file --check --extra-vars "$ANSIBLE_VARS"
+      done
+  rules:
+    - when: never
