@@ -20,8 +20,8 @@ variables:
 
 
 include:
-  - local: /source/input_variables_ansible.yml
   - local: /source/logo.yml
+  - local: /source/input_variables_ansible.yml
   - local: /source/ansible_init.yml
 
 
@@ -40,9 +40,7 @@ include:
   script:
     - |
       for file in playbooks/*.yml; do
-        echo -e "┌────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐"
-        printf "| %-10s | %-130s |\n" "Playbook" "$file"
-        echo -e "└────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘"
+        echo -e "\033[1;33m===>\033[0m 💾 Run Playbook: $file"
         ansible-playbook -i $ANSIBLE_INVENTORY $file --check --extra-vars "$ANSIBLE_VARS"
       done
   rules:
