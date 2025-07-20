@@ -7,6 +7,7 @@
     terraform version
     if [[ "${DEBUG}" == "true" ]]; then export TF_LOG=DEBUG; fi
 
+    if [[ "${PROJECT_TYPE}" == "terraform" ]]; then
     terraform init \
       -backend-config="address=${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}" \
       -backend-config="lock_address=${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}/lock" \
@@ -16,3 +17,4 @@
       -backend-config="lock_method=POST" \
       -backend-config="unlock_method=DELETE" \
       -backend-config="retry_wait_min=5"
+    fi

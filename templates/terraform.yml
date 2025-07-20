@@ -25,15 +25,14 @@ include:
 
 .terraform:validate:base:
   image: $CONTAINER_IMAGE_TERRAFORM
+  stage: validate
   before_script:
     - git config --global --add safe.directory ${CI_PROJECT_DIR}
     - !reference [.logo]
     - !reference [.input-variables-terraform]
-    - !reference [.terraform_init]
 
 
 🕵 terraform fmt:
-  stage: validate
   extends: ['.terraform:validate:base']
   script:
     - terraform fmt -recursive -check
@@ -42,9 +41,32 @@ include:
 
 
 ✅ terraform validate:
-  stage: validate
   extends: ['.terraform:validate:base']
   script:
+    - !reference [.terraform_init]
     - terraform validate
+  rules:
+    - when: never
+
+
+✅ tflint:
+  extends: ['.terraform:validate:base']
+  script:
+    - tflint
+  rules:
+    - when: never
+
+
+✅ terraform-docs:
+  extends: ['.terraform:validate:base']
+  script:
+    - |
+      cp README.md README.md.bak
+      if [ -f .terraform-docs.yml ]; then
+        terraform-docs -c .terraform-docs.yml .
+      else 
+        terraform-docs md . > README.md
+      fi
+      diff README.md README.md.bak
   rules:
     - when: never
