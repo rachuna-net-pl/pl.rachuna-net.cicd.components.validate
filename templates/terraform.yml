@@ -18,6 +18,7 @@ variables:
 
 
 include:
+  - local: /source/function_print_row.yml
   - local: /source/terraform_input_variables.yml
   - local: /source/logo.yml
   - local: /source/terraform_init.yml
