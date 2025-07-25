@@ -18,33 +18,55 @@ variables:
 
 
 include:
-  - local: /source/input_variables_terraform.yml
+  - local: /source/terraform_input_variables.yml
   - local: /source/logo.yml
   - local: /source/terraform_init.yml
 
 
-.terraform:validate:base:
+.validate:terraform:base:
   image: $CONTAINER_IMAGE_TERRAFORM
   before_script:
     - git config --global --add safe.directory ${CI_PROJECT_DIR}
     - !reference [.logo]
-    - !reference [.input-variables-terraform]
-    - !reference [.terraform_init]
+    - !reference [.validate:function_print_row]
+    - !reference [.validate:terraform_input_variables]
 
 
 🕵 terraform fmt:
   stage: validate
-  extends: ['.terraform:validate:base']
+  extends: ['.validate:terraform:base']
   script:
     - terraform fmt -recursive -check
-  rules:
-    - when: never
 
 
 ✅ terraform validate:
   stage: validate
-  extends: ['.terraform:validate:base']
+  extends: ['.validate:terraform:base']
   script:
+    - !reference [.terraform_init]
     - terraform validate
+  rules:
+    - when: never
+
+
+✅ tflint:
+  extends: ['.validate:terraform:base']
+  script:
+    - tflint
+  rules:
+    - when: never
+
+
+✅ terraform-docs:
+  extends: ['.validate:terraform:base']
+  script:
+    - |
+      cp README.md README.md.bak
+      if [ -f .terraform-docs.yml ]; then
+        terraform-docs -c .terraform-docs.yml .
+      else
+        terraform-docs md . > README.md
+      fi
+      diff README.md README.md.bak
   rules:
     - when: never
