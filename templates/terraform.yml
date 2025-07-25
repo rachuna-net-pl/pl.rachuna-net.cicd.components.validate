@@ -43,7 +43,7 @@ include:
   stage: validate
   extends: ['.validate:terraform:base']
   script:
-    - !reference [.terraform_init]
+    - !reference [.validate:terraform_init]
     - terraform validate
   rules:
     - when: never
