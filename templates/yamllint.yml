@@ -1,0 +1,45 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/python:2.0.0"
+      description: "The docker image to use for the job"
+    validate_repo_namespace:
+      default: "pl.rachuna-net/cicd/components/validate"
+      description: "GitLab namespace and path to the component's repository."
+    validate_repo_branch:
+      default: "main"
+      description: "Gitlab component branch"
+    yamllint_path:
+      default: "_configs/.yamllint.yml"
+      description: "The path to yamllint"
+---
+variables:
+  CONTAINER_IMAGE_PYTHON: $[[ inputs.docker_image ]]
+  VALIDATE_REPO_NAMESPACE: $[[ inputs.validate_repo_namespace ]]
+  VALIDATE_REPO_BRANCH: $[[ inputs.validate_repo_branch ]]
+  YAMLLINT_PATH: $[[ inputs.yamllint_path ]]
+
+
+include:
+  - local: /source/function_print_row.yml
+  - local: /source/logo.yml
+  - local: /source/yamlint_input_variables.yml
+  - local: /source/yamlint_prepare.yml
+
+
+.validate:yamlint:base:
+  image: $CONTAINER_IMAGE_PYTHON
+  before_script:
+    - git config --global --add safe.directory ${CI_PROJECT_DIR}
+    - !reference [.logo]
+    - !reference [.validate:function_print_row]
+    - !reference [.validate:yamlint_input_variables]
+    - !reference [.validate:yamlint_prepare]
+  script:
+    - yamllint .
+
+
+🕵 YAML lint:
+  stage: validate
+  extends: ['.validate:yamlint:base']
