@@ -39,7 +39,7 @@ Komponent do automatycznej walidacji jakości i poprawności kodu w procesach CI
 
 * Pliki lokalne:
 
-  * `/source/input_variables_terraform.yml` – ustawienia dodatkowych zmiennych
+  * `/source/terraform_input_variables.yml` – ustawienia dodatkowych zmiennych
   * `/source/logo.yml` – logo komponentu
   * `/source/terraform_init.yml` – inicjalizacja backendu Terraform
 
@@ -104,10 +104,6 @@ include:
 
 ---
 ## YAMLLINT
-
-Oto przykładowa dokumentacja do przedstawionego komponentu **GitLab CI** – przygotowana w przejrzystej formie technicznej:
-
-### **Nazwa komponentu**
 
 > [!NOTE]
 >
