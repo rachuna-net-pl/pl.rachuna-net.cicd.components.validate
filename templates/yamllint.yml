@@ -1,0 +1,45 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/python:2.0.0"
+      description: "The docker image to use for the job"
+    logo_url:
+      default: https://gitlab.com/pl.rachuna-net/cicd/gitlab-ci/-/raw/main/_configs/_logo?ref_type=heads
+      description: "Set logo url"
+    validate_repo_namespace:
+      default: "pl.rachuna-net/cicd/components/validate"
+      description: "GitLab namespace and path to the component's repository."
+    validate_repo_branch:
+      default: "main"
+      description: "Gitlab component branch"
+    yamllint_path:
+      default: "_configs/validate/.yamllint.yml"
+      description: "The path to yamllint"
+---
+variables:
+  CONTAINER_IMAGE_PYTHON: $[[ inputs.docker_image ]]
+  LOGO_URL: $[[ inputs.logo_url ]]
+  VALIDATE_REPO_NAMESPACE: $[[ inputs.validate_repo_namespace ]]
+  VALIDATE_REPO_BRANCH: $[[ inputs.validate_repo_branch ]]
+  YAMLLINT_PATH: $[[ inputs.yamllint_path ]]
+
+
+include:
+  - local: /source/validate/_function_print_row.yml
+  - local: /source/validate/yamlint_input_variables.yml
+  - local: /source/validate/yamlint_prepare.yml
+
+
+🕵 YAML lint:
+  stage: validate
+  image: $CONTAINER_IMAGE_PYTHON
+  before_script:
+    - |
+      git config --global --add safe.directory ${CI_PROJECT_DIR}
+      [ ! -z "${LOGO_URL}" ] && curl -s "${LOGO_URL}"
+    - !reference [.validate:_function_print_row]
+    - !reference [.validate:yamlint_input_variables]
+    - !reference [.validate:yamlint_prepare]
+  script:
+    - yamllint .

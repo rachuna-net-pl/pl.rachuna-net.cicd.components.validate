@@ -1,0 +1,10 @@
+---
+.validate:yamlint_prepare:
+  - |
+    echo ""
+
+    echo -e "\033[1;33m===>\033[0m ⚙️  Download .yamllint"
+    if [ ! -f "$CI_PROJECT_DIR/.yamllint" ]; then
+      VERSIONING_RELEASERC_URL="$CI_SERVER_URL/${VALIDATE_REPO_NAMESPACE}/-/raw/${VALIDATE_REPO_BRANCH}/${YAMLLINT_PATH}"
+      curl -s -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" ${VERSIONING_RELEASERC_URL} --output $CI_PROJECT_DIR/.yamllint;
+    fi

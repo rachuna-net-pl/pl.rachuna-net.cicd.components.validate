@@ -1,0 +1,53 @@
+---
+spec:
+  inputs:
+    docker_image:
+      default: "registry.gitlab.com/pl.rachuna-net/containers/conftest:1.0.0"
+      description: "The docker image to use for the job"
+    logo_url:
+      default: https://gitlab.com/pl.rachuna-net/cicd/gitlab-ci/-/raw/main/_configs/_logo?ref_type=heads
+      description: "Set logo url"
+    repository_policies:
+      default: "git@gitlab.com:pl.rachuna-net/discipline.git"
+      description: "GitLab path to repository"
+    repository_policies_branch:
+      default: "main"
+      description: "GitLab Repository policies branch"
+    repository_policies_path:
+      default: "policies/conftest"
+      description: "Set policies path"
+    source_files:
+      default: "config.yml"
+      description: "GitLab files to test"
+    namespace_policy:
+      default: ""
+      description: "Set namespace policy"
+---
+variables:
+  CONTAINER_IMAGE_CONFTEST: $[[ inputs.docker_image ]]
+  LOGO_URL: $[[ inputs.logo_url ]]
+  REPOSITORY_POLICIES: $[[ inputs.repository_policies ]]
+  REPOSITORY_POLICIES_BRANCH: $[[ inputs.repository_policies_branch ]]
+  REPOSITORY_POLICIES_PATH: $[[ inputs.repository_policies_path ]]
+  NAMESPACE_POLICY: $[[ inputs.namespace_policy ]]
+  SOURCE_FILES: $[[ inputs.source_files ]]
+
+
+include:
+  - local: /source/validate/_function_print_row.yml
+  - local: /source/validate/conftest_input_variables.yml
+  - local: /source/validate/conftest_prepare.yml
+
+
+🔬 Validate files (conftest):
+  stage: validate
+  image: $CONTAINER_IMAGE_CONFTEST
+  before_script:
+    - |
+      git config --global --add safe.directory ${CI_PROJECT_DIR}
+      [ ! -z "${LOGO_URL}" ] && curl -s "${LOGO_URL}"
+    - !reference [.validate:_function_print_row]
+    - !reference [.validate:conftest_input_variables]
+    - !reference [.validate:conftest_prepare]
+  script:
+    - conftest test $SOURCE_FILES --policy $REPOSITORY_POLICIES_PATH --namespace $NAMESPACE_POLICY
